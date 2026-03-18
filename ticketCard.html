@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket Card</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: #1e1e1e;
+      border-radius: 8px;
+    }
+
+    .ticket-card {
+      width: 345px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 3px rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+    }
+
+    .card-top,
+    .card-bottom {
+      padding: 16px;
+      min-width: 240px;
+    }
+
+    .card-top {
+      background: #ffffff;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .card-bottom {
+      background: #e4e4e4;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    .game-title {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 14px;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .label {
+      font-weight: 500;
+    }
+
+    .value {
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket-card">
+    <div class="card-top">
+      <h2 class="game-title">Game Title</h2>
+      <div class="row">
+        <div class="group">
+          <span class="label">Game ID</span>
+          <span class="value">000000</span>
+        </div>
+        <div class="group">
+          <span class="label">Bundle ID</span>
+          <span class="value">000000</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-bottom">
+      <div class="row">
+        <div class="group">
+          <span class="label">Quantity</span>
+          <span class="value">000</span>
+        </div>
+        <div class="group">
+          <span class="label">Unity Price</span>
+          <span class="value">00</span>
+        </div>
+        <div class="group">
+          <span class="label">Total</span>
+          <span class="value">0000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

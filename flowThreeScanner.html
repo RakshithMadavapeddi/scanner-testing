@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow Three Scanner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="flow-three-scanner-page" data-page="flow-three-scanner">
+  <main class="screen">
+    <header class="topbar">
+      <button class="icon-btn" aria-label="Close" id="closeScannerButton" type="button">
+        <img src="assets/close.svg" alt="Close">
+      </button>
+
+      <h1 class="topbar-title">Flow 03 Scanner</h1>
+
+      <button class="icon-btn" aria-label="Torch" id="torchButton" type="button">
+        <img src="assets/flash_off.svg" alt="Torch" id="torchIcon" onerror="this.onerror=null;this.src='assets/flash_off.svg';">
+      </button>
+    </header>
+
+    <section class="status-bar">
+      <div class="status-text">
+        <span class="status-label">No. of Items Scanned</span>
+        <span class="status-value" id="scannerStatusValue">00/00</span>
+      </div>
+    </section>
+
+    <section class="viewport" aria-label="Camera viewport">
+      <video class="camera-feed" id="cameraFeed" autoplay playsinline muted></video>
+      <div class="scan-guide" aria-hidden="true"></div>
+      <div class="camera-message" id="cameraMessage" hidden></div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

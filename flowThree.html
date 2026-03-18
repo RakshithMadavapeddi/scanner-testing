@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow 03</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="flow-three-page" data-page="flow-three">
+  <main class="screen">
+    <header class="topbar">
+      <div class="icon-button" aria-label="Back" id="backButton" role="button" tabindex="0">
+        <img src="assets/arrow_back.svg" alt="Back">
+      </div>
+
+      <h1 class="topbar-title">Flow 03</h1>
+
+      <div class="icon-button" aria-label="Scan" id="scanEntryButton" role="button" tabindex="0">
+        <img src="assets/barcodeIcon.svg" alt="Scan">
+      </div>
+    </header>
+
+    <section class="tabs">
+      <div class="tab active" id="tabUncounted" data-tab="uncounted" role="button" tabindex="0">
+        <span>UNCOUNTED</span>
+        <span class="badge" id="uncountedBadge">00</span>
+      </div>
+      <div class="tab" id="tabCounted" data-tab="counted" role="button" tabindex="0">
+        <span>COUNTED</span>
+        <span class="badge" id="countedBadge">00</span>
+      </div>
+    </section>
+
+    <section class="body" id="ticketList"></section>
+
+    <footer class="bottom-bar">
+      <button class="done-button" id="doneButton" type="button">Done</button>
+    </footer>
+  </main>
+
+  <div class="quantity-modal" id="quantityModal" hidden>
+    <div class="quantity-modal-backdrop" data-close-modal></div>
+    <div class="quantity-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="quantityModalTitle">
+      <h2 class="quantity-modal-title" id="quantityModalTitle">Update Quantity</h2>
+      <p class="quantity-modal-meta" id="quantityModalMeta"></p>
+      <input
+        class="quantity-modal-input"
+        id="quantityInput"
+        type="number"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        placeholder="Enter quantity"
+      />
+      <div class="quantity-modal-error" id="quantityError" aria-live="polite"></div>
+      <div class="quantity-modal-actions">
+        <button class="quantity-modal-button" id="quantityCancelButton" type="button">Cancel</button>
+        <button class="quantity-modal-button confirm" id="quantityConfirmButton" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
