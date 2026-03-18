@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow 02</title>
+  <style>
+    :root {
+      --screen-width: 393px;
+      --screen-height: 852px;
+      --bg: #f2f2f2;
+      --surface: #ffffff;
+      --surface-muted: #d9d9d9;
+      --surface-card-muted: #e4e4e4;
+      --text: #1e1e1e;
+      --shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.30), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+      --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.30), 0 1px 3px 0 rgba(0, 0, 0, 0.15);
+      --radius-sm: 4px;
+      --radius-md: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e0e0e0;
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+    
+    }
+
+    .screen {
+      width: var(--screen-width);
+      min-height: var(--screen-height);
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-app-bar {
+      width: 100%;
+      background: var(--surface);
+      padding: 24px;
+    }
+
+    .top-app-bar__row {
+      position: relative;
+      width: 100%;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .icon-button {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .icon-button:focus-visible,
+    .primary-button:focus-visible {
+      outline: 2px solid #000;
+      outline-offset: 2px;
+    }
+
+    .screen-title {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      font-size: 20px;
+      line-height: 24px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .count-bar {
+      width: 100%;
+      height: 48px;
+      background: var(--surface-muted);
+      box-shadow: var(--shadow-1);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .count-bar__content {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      line-height: 16px;
+      color: var(--text);
+    }
+
+    .count-bar__label {
+      font-weight: 500;
+    }
+
+    .count-bar__value {
+      font-weight: 400;
+    }
+
+    .body {
+      flex: 1 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #cardList {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .recon-card {
+      width: 345px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .recon-card__top,
+    .recon-card__bottom {
+      padding: 16px;
+      width: 100%;
+    }
+
+    .recon-card__top {
+      background: var(--surface);
+    }
+
+    .recon-card__bottom {
+      background: var(--surface-card-muted);
+    }
+
+    .recon-card__title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 22px;
+      font-weight: 600;
+    }
+
+    .recon-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 14px;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .recon-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .recon-label {
+      font-weight: 500;
+    }
+
+    .recon-value {
+      font-weight: 400;
+    }
+
+    .bottom-app-bar {
+      width: 100%;
+      background: var(--surface);
+      box-shadow: var(--shadow-1);
+      padding: 24px;
+    }
+
+    .primary-button {
+      width: 100%;
+      height: 40px;
+      border: 1px solid #000;
+      border-radius: var(--radius-sm);
+      background: #000;
+      color: #f5f5f5;
+      font-size: 16px;
+      line-height: 16px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .scan-modal-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+    }
+
+    .scan-modal-layer[hidden] {
+      display: none;
+    }
+
+    .scan-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: transparent;
+    }
+
+    .scan-window {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: min(200px, calc(100% - 32px));
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: var(--radius-md);
+      background: #000000;
+      box-shadow: 0 6px 10px 4px rgba(0, 0, 0, 0.15), 0 2px 3px rgba(0, 0, 0, 0.3);
+      isolation: isolate;
+    }
+
+    .scan-camera-feed {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000000;
+      transform: scaleX(-1);
+    }
+
+    .scan-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      pointer-events: none;
+    }
+
+    .scan-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 24px;
+    }
+
+    .scan-icon-button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      cursor: pointer;
+      color: #ffffff;
+    }
+
+    .scan-icon-button.close {
+      width: 22px;
+      height: 22px;
+    }
+
+    .scan-icon-button img {
+      display: block;
+    }
+
+    .scan-icon-button:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .scan-icon-button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .scan-status {
+      margin-top: auto;
+      align-self: stretch;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      padding-bottom: 4px;
+    }
+
+    .scan-status-message {
+      max-width: calc(100% - 8px);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #ffffff;
+      font-size: 12px;
+      line-height: 1.25;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .scan-status-message[data-visible="true"] {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 420px) {
+      body {
+        background: var(--bg);
+      }
+
+      .screen {
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      .recon-card {
+        width: 100%;
+      }
+
+      .scan-window {
+        top: 12px;
+        right: 12px;
+        width: min(200px, calc(100% - 24px));
+      }
+    }
+  </style>
+</head>
+<body data-page="flow-two">
+  <main class="screen" data-name="2. Flow 02" data-node-id="1513:1233">
+    <header class="top-app-bar" data-name="topAppBar" data-node-id="1513:1234">
+      <div class="top-app-bar__row" data-node-id="1513:1235">
+        <button class="icon-button" id="backButton" aria-label="Go back" data-name="backButton" data-node-id="1513:1236" type="button">
+          <img src="assets/arrow_back.svg" alt="Back">  
+        </button>
+
+        <h1 class="screen-title" data-node-id="1513:1238">Flow 02</h1>
+
+        <button class="icon-button" id="scanIdButton" aria-label="Scan ID" data-name="scanIdButton" data-node-id="1513:1239" type="button">
+          <img src="assets/barcodeIcon.svg" alt="Scan">
+        </button>
+      </div>
+    </header>
+
+    <section class="count-bar" data-name="topAppBar" data-node-id="1513:1241" aria-label="Items scanned summary">
+      <div class="count-bar__content" data-node-id="1513:1243">
+        <span class="count-bar__label" data-node-id="1513:1244">No. of Items Scanned</span>
+        <span class="count-bar__value" id="scannedCount" data-node-id="1513:1245">00</span>
+      </div>
+    </section>
+
+    <section class="body" data-name="body" data-node-id="1513:1246" aria-label="Scanned item list">
+      <div id="cardList"></div>
+    </section>
+
+    <footer class="bottom-app-bar" data-name="bottomAppBar" data-node-id="1513:1389">
+      <button class="primary-button" id="doneButton" data-name="primary" data-node-id="1513:1391" type="button">Done</button>
+    </footer>
+
+    <div class="scan-modal-layer" id="flowTwoScanModal" hidden>
+      <div class="scan-modal-backdrop" id="flowTwoScanBackdrop"></div>
+
+      <div class="scan-window" id="flowTwoScanWindow" aria-label="Scan window">
+        <video
+          id="flowTwoCameraFeed"
+          class="scan-camera-feed"
+          autoplay
+          muted
+          playsinline
+          aria-label="Camera viewport"
+        ></video>
+
+        <div class="scan-overlay">
+          <div class="scan-controls">
+            <button
+              type="button"
+              class="scan-icon-button close"
+              id="flowTwoScanCloseButton"
+              aria-label="Close scanner"
+            >
+              <img src="assets/close.svg" alt="Close" width="14" height="14">
+            </button>
+
+            <button
+              type="button"
+              class="scan-icon-button"
+              id="flowTwoTorchButton"
+              aria-label="Toggle torch"
+              aria-pressed="false"
+            >
+              <img src="assets/flash_off.svg" alt="Torch" id="flowTwoTorchIcon" width="18" height="18" onerror="this.onerror=null;this.src='assets/flash_off.svg';">
+            </button>
+          </div>
+
+          <div class="scan-status" aria-live="polite" aria-atomic="true">
+            <div id="flowTwoScanStatus" class="scan-status-message" data-visible="false"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

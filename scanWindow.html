@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scanWindow</title>
+  <style>
+    :root {
+      --card-size: 200px;
+      --card-radius: 8px;
+      --card-padding: 16px;
+      --control-icon: 24px;
+      --close-hit: 22px;
+      --close-icon: 14px;
+      --flash-icon: 18px;
+      --shadow-1: 0 2px 3px rgba(0, 0, 0, 0.3);
+      --shadow-2: 0 6px 10px 4px rgba(0, 0, 0, 0.15);
+      --control-color: #ffffff;
+      --message-bg: rgba(0, 0, 0, 0.5);
+      --message-color: #ffffff;
+      --surface-bg: #d9d9d9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--surface-bg);
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .scan-window {
+      position: relative;
+      width: min(var(--card-size), calc(100vw - 48px));
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: var(--card-radius);
+      background: #000;
+      box-shadow: var(--shadow-2), var(--shadow-1);
+      isolation: isolate;
+    }
+
+    .camera-viewport {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      transform: scaleX(-1);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: var(--card-padding);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 24px;
+    }
+
+    .icon-button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--control-color);
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .icon-button:hover {
+      opacity: 0.92;
+    }
+
+    .icon-button:active {
+      transform: scale(0.96);
+    }
+
+    .icon-button:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .close-button {
+      width: var(--close-hit);
+      height: var(--close-hit);
+    }
+
+    .torch-button {
+      width: var(--control-icon);
+      height: var(--control-icon);
+    }
+
+    .icon {
+      display: block;
+      flex: none;
+    }
+
+    .close-icon {
+      width: var(--close-icon);
+      height: var(--close-icon);
+    }
+
+    .torch-icon {
+      width: var(--flash-icon);
+      height: var(--flash-icon);
+    }
+
+    .torch-on,
+    .torch-button[aria-pressed="true"] .torch-off {
+      display: none;
+    }
+
+    .torch-button[aria-pressed="true"] .torch-on {
+      display: block;
+    }
+
+    .status {
+      margin-top: auto;
+      align-self: stretch;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 2;
+      padding-bottom: 4px;
+    }
+
+    .status-message {
+      max-width: calc(100% - 8px);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--message-bg);
+      color: var(--message-color);
+      font-size: 12px;
+      line-height: 1.25;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .status-message[data-visible="true"] {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .torch-button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="scan-window" id="scanWindow" data-node-id="1486:1068">
+    <video
+      id="cameraViewport"
+      class="camera-viewport"
+      autoplay
+      muted
+      playsinline
+      aria-label="Camera viewport"
+    ></video>
+
+    <div class="overlay">
+      <div class="controls" data-node-id="1486:1069">
+        <button
+          type="button"
+          class="icon-button close-button"
+          id="closeButton"
+          aria-label="Close scanner"
+          data-node-id="1486:1070"
+        >
+          <svg class="icon close-icon" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="square"/>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="icon-button torch-button"
+          id="torchButton"
+          aria-label="Toggle torch"
+          aria-pressed="false"
+          data-node-id="1486:1071"
+        >
+          <svg class="icon torch-icon torch-off" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M11.482 1.5H6.518c-.265 0-.49.192-.531.454l-.763 4.88a.539.539 0 0 0 .532.623h2.132L6.26 15.65a.375.375 0 0 0 .68.278l4.8-6.66a.375.375 0 0 0-.304-.594H9.61l2.404-6.57a.45.45 0 0 0-.422-.604Z" fill="currentColor"/>
+            <path d="M3 3l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <svg class="icon torch-icon torch-on" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M11.482 1.5H6.518c-.265 0-.49.192-.531.454l-.763 4.88a.539.539 0 0 0 .532.623h2.132L6.26 15.65a.375.375 0 0 0 .68.278l4.8-6.66a.375.375 0 0 0-.304-.594H9.61l2.404-6.57a.45.45 0 0 0-.422-.604Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="status" aria-live="polite" aria-atomic="true">
+        <div id="statusMessage" class="status-message" data-visible="false"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('cameraViewport');
+    const closeButton = document.getElementById('closeButton');
+    const torchButton = document.getElementById('torchButton');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let stream = null;
+    let currentTrack = null;
+    let torchEnabled = false;
+    let statusTimer = null;
+
+    function showStatus(message, persistent = false) {
+      statusMessage.textContent = message;
+      statusMessage.dataset.visible = 'true';
+
+      if (statusTimer) {
+        clearTimeout(statusTimer);
+        statusTimer = null;
+      }
+
+      if (!persistent) {
+        statusTimer = setTimeout(() => {
+          statusMessage.dataset.visible = 'false';
+        }, 2200);
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      stream = null;
+      currentTrack = null;
+      torchEnabled = false;
+      torchButton.setAttribute('aria-pressed', 'false');
+      torchButton.disabled = true;
+      video.srcObject = null;
+    }
+
+    function deviceSupportsTorch(track) {
+      if (!track || typeof track.getCapabilities !== 'function') return false;
+      const capabilities = track.getCapabilities();
+      return Boolean(capabilities && capabilities.torch);
+    }
+
+    async function setTorchState(enabled) {
+      if (!currentTrack || typeof currentTrack.applyConstraints !== 'function') {
+        throw new Error('No active camera track available.');
+      }
+
+      await currentTrack.applyConstraints({
+        advanced: [{ torch: enabled }]
+      });
+
+      torchEnabled = enabled;
+      torchButton.setAttribute('aria-pressed', String(enabled));
+    }
+
+    async function toggleTorch() {
+      if (!currentTrack) {
+        showStatus('Camera is not active.', true);
+        return;
+      }
+
+      if (!deviceSupportsTorch(currentTrack)) {
+        showStatus('Torch is not supported on this device.', true);
+        return;
+      }
+
+      try {
+        await setTorchState(!torchEnabled);
+        showStatus(torchEnabled ? 'Torch on' : 'Torch off');
+      } catch (error) {
+        console.error(error);
+        showStatus('Unable to toggle torch.', true);
+      }
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showStatus('Camera access is not supported in this browser.', true);
+        return;
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' }
+          },
+          audio: false
+        });
+
+        video.srcObject = stream;
+        currentTrack = stream.getVideoTracks()[0] || null;
+
+        const canUseTorch = deviceSupportsTorch(currentTrack);
+        torchButton.disabled = !canUseTorch;
+
+        if (!canUseTorch) {
+          showStatus('Torch unavailable on this camera.', true);
+        }
+      } catch (error) {
+        console.error(error);
+        torchButton.disabled = true;
+        showStatus('Camera permission denied or unavailable.', true);
+      }
+    }
+
+    closeButton.addEventListener('click', () => {
+      stopCamera();
+      document.dispatchEvent(new CustomEvent('scanwindow:close'));
+
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        document.getElementById('scanWindow').style.display = 'none';
+      }
+    });
+
+    torchButton.addEventListener('click', toggleTorch);
+
+    window.addEventListener('beforeunload', stopCamera);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopCamera();
+      } else if (!stream) {
+        startCamera();
+      }
+    });
+
+    startCamera();
+  </script>
+</body>
+</html>

@@ -115,14 +115,14 @@
   <main class="dashboard">
     <header class="topbar">
       <h1>Ticket Reconciliation</h1>
-      <button class="refresh-button" id="resetFlowThreeButton" type="button" aria-label="Reset Flow 03 to uncounted">
-        <img src="assets/cached.svg" alt="Reset Flow 03" width="22" height="16">
+      <button class="refresh-button" id="resetFlowThreeButton" type="button" aria-label="Reset Flow 02 and Flow 03">
+        <img src="assets/cached.svg" alt="Reset flows" width="22" height="16">
       </button>
     </header>
 
     <section class="content">
       <div class="card"><p class="card-label">Flow 01</p></div>
-      <div class="card"><p class="card-label">Flow 02</p></div>
+      <div class="card actionable" id="flow02Card" role="button" tabindex="0" aria-label="Open Flow 02"><p class="card-label">Flow 02</p></div>
       <div class="card actionable" id="flow03Card" role="button" tabindex="0" aria-label="Open Flow 03"><p class="card-label">Flow 03</p></div>
       <div class="card muted"><p class="card-label">Button</p></div>
       <div class="card muted"><p class="card-label">Button</p></div>
@@ -134,46 +134,32 @@
   <script>
     (function () {
       var FLOW_THREE_STORAGE_KEY = 'flowThree.ticketState.v1';
+      var FLOW_TWO_STORAGE_KEY = 'flowTwo.scannedItems.v1';
+      var flow02Card = document.getElementById('flow02Card');
       var flow03Card = document.getElementById('flow03Card');
       var resetFlowThreeButton = document.getElementById('resetFlowThreeButton');
 
       function resetFlowThreeState() {
-        var rawState = window.localStorage.getItem(FLOW_THREE_STORAGE_KEY);
-        if (!rawState) {
-          window.alert('Flow 03 is already reset.');
-          return;
-        }
-
-        var parsedState = null;
-        try {
-          parsedState = JSON.parse(rawState);
-        } catch (error) {
-          parsedState = null;
-        }
-
-        if (!parsedState || !Array.isArray(parsedState.tickets)) {
-          window.localStorage.removeItem(FLOW_THREE_STORAGE_KEY);
-          window.alert('Flow 03 has been reset to uncounted.');
-          return;
-        }
-
-        parsedState.tickets = parsedState.tickets.map(function (ticket) {
-          return Object.assign({}, ticket, {
-            quantity: null,
-            totalPrice: 0,
-            updatedBy: null,
-            lastScannedCode: '',
-            lastUpdatedAt: ''
-          });
-        });
-
-        parsedState.updatedAt = new Date().toISOString();
-        window.localStorage.setItem(FLOW_THREE_STORAGE_KEY, JSON.stringify(parsedState));
-        window.alert('Flow 03 has been reset to uncounted.');
+        window.localStorage.removeItem(FLOW_THREE_STORAGE_KEY);
+        window.localStorage.removeItem(FLOW_TWO_STORAGE_KEY);
+        window.alert('Flow 02 and Flow 03 have been reset.');
       }
 
       if (resetFlowThreeButton) {
         resetFlowThreeButton.addEventListener('click', resetFlowThreeState);
+      }
+
+      if (flow02Card) {
+        flow02Card.addEventListener('click', function () {
+          window.location.href = 'flowTwo.html';
+        });
+
+        flow02Card.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            window.location.href = 'flowTwo.html';
+          }
+        });
       }
 
       if (!flow03Card) {
