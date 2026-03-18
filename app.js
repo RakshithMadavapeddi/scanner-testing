@@ -9,8 +9,12 @@
 
   var STORAGE_KEY = DataApi.STORAGE_KEY;
   var FLOW_TWO_STORAGE_KEY = 'flowTwo.scannedItems.v1';
+  var scannerBeepContext = null;
+  var scannerBeepUnlockBound = false;
 
   document.addEventListener('DOMContentLoaded', function () {
+    primeScannerBeep();
+
     var page = document.body.getAttribute('data-page');
 
     if (page === 'flow-three') {
@@ -250,6 +254,88 @@
         onActivate();
       }
     });
+  }
+
+  function getScannerBeepContext() {
+    var AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      return null;
+    }
+
+    if (scannerBeepContext && scannerBeepContext.state !== 'closed') {
+      return scannerBeepContext;
+    }
+
+    try {
+      scannerBeepContext = new AudioContextConstructor();
+    } catch (error) {
+      scannerBeepContext = null;
+    }
+
+    return scannerBeepContext;
+  }
+
+  function emitScannerBeep(context) {
+    var now = context.currentTime;
+    var oscillator = context.createOscillator();
+    var gainNode = context.createGain();
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(1760, now);
+    oscillator.frequency.exponentialRampToValueAtTime(1320, now + 0.09);
+
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.13);
+  }
+
+  function playScannerBeep() {
+    var context = getScannerBeepContext();
+    if (!context) {
+      return;
+    }
+
+    if (context.state === 'suspended' && typeof context.resume === 'function') {
+      context.resume().then(function () {
+        emitScannerBeep(context);
+      }).catch(function () {
+        // Intentionally silent when autoplay restrictions block audio.
+      });
+      return;
+    }
+
+    emitScannerBeep(context);
+  }
+
+  function primeScannerBeep() {
+    if (scannerBeepUnlockBound) {
+      return;
+    }
+
+    scannerBeepUnlockBound = true;
+
+    function unlockBeepContext() {
+      var context = getScannerBeepContext();
+      if (context && context.state === 'suspended' && typeof context.resume === 'function') {
+        context.resume().catch(function () {
+          // Intentionally silent when autoplay restrictions block audio.
+        });
+      }
+
+      document.removeEventListener('pointerdown', unlockBeepContext, true);
+      document.removeEventListener('touchstart', unlockBeepContext, true);
+      document.removeEventListener('keydown', unlockBeepContext, true);
+    }
+
+    document.addEventListener('pointerdown', unlockBeepContext, true);
+    document.addEventListener('touchstart', unlockBeepContext, true);
+    document.addEventListener('keydown', unlockBeepContext, true);
   }
 
   function normalizeFlowTwoItem(item, index) {
@@ -590,6 +676,7 @@
         currentState = writeFlowTwoStateToStorage(currentState);
         renderFlowTwoCards();
 
+        playScannerBeep();
         showScanStatus('Scanned Game ' + matchedSeedTicket.gameId + ' / Bundle ' + matchedSeedTicket.bundleId + '.', false);
 
         if (window.navigator && typeof window.navigator.vibrate === 'function') {
@@ -1153,6 +1240,7 @@
         currentState = writeStateToStorage(currentState);
         updateScannerStatus(currentState.tickets);
 
+        playScannerBeep();
         showMessage('Updated Game ' + ticket.gameId + ' / Bundle ' + ticket.bundleId + ' to quantity ' + DataApi.pad(quantity, 3) + '.');
 
         if (window.navigator && typeof window.navigator.vibrate === 'function') {
