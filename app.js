@@ -19,6 +19,11 @@
 
     if (page === 'flow-three-scanner') {
       initFlowThreeScannerPage();
+      return;
+    }
+
+    if (page === 'summary') {
+      initSummaryPage();
     }
   });
 
@@ -216,6 +221,15 @@
     }
 
     return DataApi.pad(totalValue, 4);
+  }
+
+  function formatSummaryAmount(value) {
+    var safeValue = toSafeNumber(value, 0);
+    if (safeValue < 0) {
+      safeValue = 0;
+    }
+
+    return String(Math.round(safeValue).toLocaleString('en-US'));
   }
 
   function bindPseudoButton(element, onActivate) {
@@ -452,16 +466,17 @@
     });
 
     bindPseudoButton(backButton, function () {
-      if (window.history.length > 1) {
-        window.history.back();
-        return;
-      }
-
       window.location.href = 'dashboard.html';
     });
 
     if (doneButton) {
       doneButton.addEventListener('click', function () {
+        var counts = countTickets(currentState.tickets);
+        if (counts.uncounted > 0) {
+          window.alert('Please enter quantities for all tickets before opening the summary.');
+          return;
+        }
+
         window.location.href = 'summary.html';
       });
     }
@@ -766,5 +781,112 @@
     setTorchIcon(false);
     updateTorchAvailability();
     startScanner();
+  }
+
+  async function initSummaryPage() {
+    var summaryTotalValue = document.getElementById('summaryTotalValue');
+    var summaryList = document.getElementById('summaryList');
+    var summaryDoneButton = document.getElementById('summaryDoneButton');
+
+    if (!summaryTotalValue || !summaryList) {
+      return;
+    }
+
+    var currentState = await getOrCreateState();
+
+    function renderSummary() {
+      var countedTickets = currentState.tickets
+        .filter(isTicketCounted)
+        .slice()
+        .sort(function (ticketA, ticketB) {
+          var gameDiff = toSafeInt(ticketA.gameId, 0) - toSafeInt(ticketB.gameId, 0);
+          if (gameDiff !== 0) {
+            return gameDiff;
+          }
+
+          return toSafeInt(ticketA.bundleId, 0) - toSafeInt(ticketB.bundleId, 0);
+        });
+
+      var totalAmount = countedTickets.reduce(function (total, ticket) {
+        var quantity = ticket.quantity === null ? 0 : ticket.quantity;
+        return total + (quantity * ticket.unitPrice);
+      }, 0);
+
+      summaryTotalValue.textContent = '$ ' + formatSummaryAmount(totalAmount);
+
+      if (!countedTickets.length) {
+        summaryList.innerHTML = [
+          '<div class="summary-row">',
+          '  <div class="game-info">',
+          '    <p class="game-title">No counted tickets</p>',
+          '    <p class="bundle-id">Go back and count bundles first.</p>',
+          '  </div>',
+          '  <div class="metrics">',
+          '    <div class="metric">',
+          '      <p class="metric-label">Unit</p>',
+          '      <p class="metric-value">000</p>',
+          '    </div>',
+          '    <div class="metric">',
+          '      <p class="metric-label">Qty</p>',
+          '      <p class="metric-value">000</p>',
+          '    </div>',
+          '    <div class="metric">',
+          '      <p class="metric-label">Total</p>',
+          '      <p class="metric-value">0000</p>',
+          '    </div>',
+          '  </div>',
+          '</div>'
+        ].join('');
+        return;
+      }
+
+      summaryList.innerHTML = countedTickets.map(function (ticket) {
+        var quantity = ticket.quantity === null ? 0 : ticket.quantity;
+        var lineTotal = quantity * ticket.unitPrice;
+
+        return [
+          '<div class="summary-row">',
+          '  <div class="game-info">',
+          '    <p class="game-title">' + escapeHTML(ticket.gameTitle) + '</p>',
+          '    <p class="bundle-id">Bundle ' + escapeHTML(ticket.bundleId) + '</p>',
+          '  </div>',
+          '  <div class="metrics">',
+          '    <div class="metric">',
+          '      <p class="metric-label">Unit</p>',
+          '      <p class="metric-value">' + DataApi.pad(ticket.unitPrice, 3) + '</p>',
+          '    </div>',
+          '    <div class="metric">',
+          '      <p class="metric-label">Qty</p>',
+          '      <p class="metric-value">' + DataApi.pad(quantity, 3) + '</p>',
+          '    </div>',
+          '    <div class="metric">',
+          '      <p class="metric-label">Total</p>',
+          '      <p class="metric-value">' + formatSummaryAmount(lineTotal) + '</p>',
+          '    </div>',
+          '  </div>',
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    if (summaryDoneButton) {
+      bindPseudoButton(summaryDoneButton, function () {
+        window.location.href = 'dashboard.html';
+      });
+    }
+
+    window.addEventListener('storage', function (event) {
+      if (event.key !== STORAGE_KEY) {
+        return;
+      }
+
+      var latest = readStateFromStorage();
+      if (latest) {
+        currentState = latest;
+        renderSummary();
+      }
+    });
+
+    renderSummary();
   }
 })(window, document);

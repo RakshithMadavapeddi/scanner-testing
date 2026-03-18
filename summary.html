@@ -147,110 +147,55 @@
     }
   </style>
 </head>
-<body>
+<body data-page="summary">
   <main class="screen">
     <header class="topbar">
       <h1>Summary</h1>
     </header>
 
+   
+
     <section class="content">
-      <div class="card summary-list">
-        <div class="summary-row">
-          <div class="game-info">
-            <p class="game-title">Game Title</p>
-            <p class="bundle-id">Bundle ID</p>
-          </div>
-          <div class="metrics">
-            <div class="metric">
-              <p class="metric-label">Unit</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Qty</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Total</p>
-              <p class="metric-value">0000</p>
-            </div>
-          </div>
-        </div>
 
-        <div class="summary-row">
-          <div class="game-info">
-            <p class="game-title">Game Title</p>
-            <p class="bundle-id">Bundle ID</p>
-          </div>
-          <div class="metrics">
-            <div class="metric">
-              <p class="metric-label">Unit</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Qty</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Total</p>
-              <p class="metric-value">0000</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="summary-row">
-          <div class="game-info">
-            <p class="game-title">Game Title</p>
-            <p class="bundle-id">Bundle ID</p>
-          </div>
-          <div class="metrics">
-            <div class="metric">
-              <p class="metric-label">Unit</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Qty</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Total</p>
-              <p class="metric-value">0000</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="summary-row">
-          <div class="game-info">
-            <p class="game-title">Game Title</p>
-            <p class="bundle-id">Bundle ID</p>
-          </div>
-          <div class="metrics">
-            <div class="metric">
-              <p class="metric-label">Unit</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Qty</p>
-              <p class="metric-value">000</p>
-            </div>
-            <div class="metric">
-              <p class="metric-label">Total</p>
-              <p class="metric-value">0000</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card total-card">
+       <div class="card total-card">
         <div class="total-row">
           <p class="total-label">Total Amount</p>
-          <p class="total-value">$ 000000</p>
+          <p class="total-value" id="summaryTotalValue">$ 000000</p>
         </div>
       </div>
+
+      <div class="card summary-list" id="summaryList">
+        <div class="summary-row">
+          <div class="game-info">
+            <p class="game-title">Game Title</p>
+            <p class="bundle-id">Bundle ID</p>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <p class="metric-label">Unit</p>
+              <p class="metric-value">000</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label">Qty</p>
+              <p class="metric-value">000</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label">Total</p>
+              <p class="metric-value">0000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
     </section>
 
     <footer class="bottom-bar">
-      <div class="done-button">Done</div>
+      <div class="done-button" id="summaryDoneButton" role="button" tabindex="0">Done</div>
     </footer>
   </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

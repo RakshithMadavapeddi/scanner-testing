@@ -27,8 +27,9 @@
       background: #ffffff;
       padding: 24px;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      align-items: flex-start;
+      justify-content: flex-start;
+      position: relative;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
     }
 
@@ -38,6 +39,18 @@
       line-height: 1.2;
       font-weight: 700;
       text-align: center;
+    }
+
+    .refresh-button {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      border: none;
+      transform: translateY(-50%);
+      border-radius: 4px;
+      background: #ffffff;
+      font-size: 12px;
+      cursor: pointer;
     }
 
     .content {
@@ -63,6 +76,15 @@
       text-align: center;
     }
 
+    .card.actionable {
+      cursor: pointer;
+    }
+
+    .card.actionable:focus-visible {
+      outline: 2px solid #007bff;
+      outline-offset: 2px;
+    }
+
     .card.muted {
       background: #d9d9d9;
     }
@@ -80,23 +102,96 @@
       line-height: 1.2;
       color: #b3b3b3;
     }
+
+    .button{
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <main class="dashboard">
     <header class="topbar">
       <h1>Ticket Reconciliation</h1>
+      <button class="refresh-button" id="resetFlowThreeButton" type="button" aria-label="Reset Flow 03 to uncounted">
+        <img src="assets/cached.svg" alt="Reset Flow 03" width="22" height="16">
+      </button>
     </header>
 
     <section class="content">
       <div class="card"><p class="card-label">Flow 01</p></div>
       <div class="card"><p class="card-label">Flow 02</p></div>
-      <div class="card"><p class="card-label">Flow 03</p></div>
+      <div class="card actionable" id="flow03Card" role="button" tabindex="0" aria-label="Open Flow 03"><p class="card-label">Flow 03</p></div>
       <div class="card muted"><p class="card-label">Button</p></div>
       <div class="card muted"><p class="card-label">Button</p></div>
 
       <div class="footer">Built for testing various options.</div>
     </section>
   </main>
+
+  <script>
+    (function () {
+      var FLOW_THREE_STORAGE_KEY = 'flowThree.ticketState.v1';
+      var flow03Card = document.getElementById('flow03Card');
+      var resetFlowThreeButton = document.getElementById('resetFlowThreeButton');
+
+      function resetFlowThreeState() {
+        var rawState = window.localStorage.getItem(FLOW_THREE_STORAGE_KEY);
+        if (!rawState) {
+          window.alert('Flow 03 is already reset.');
+          return;
+        }
+
+        var parsedState = null;
+        try {
+          parsedState = JSON.parse(rawState);
+        } catch (error) {
+          parsedState = null;
+        }
+
+        if (!parsedState || !Array.isArray(parsedState.tickets)) {
+          window.localStorage.removeItem(FLOW_THREE_STORAGE_KEY);
+          window.alert('Flow 03 has been reset to uncounted.');
+          return;
+        }
+
+        parsedState.tickets = parsedState.tickets.map(function (ticket) {
+          return Object.assign({}, ticket, {
+            quantity: null,
+            totalPrice: 0,
+            updatedBy: null,
+            lastScannedCode: '',
+            lastUpdatedAt: ''
+          });
+        });
+
+        parsedState.updatedAt = new Date().toISOString();
+        window.localStorage.setItem(FLOW_THREE_STORAGE_KEY, JSON.stringify(parsedState));
+        window.alert('Flow 03 has been reset to uncounted.');
+      }
+
+      if (resetFlowThreeButton) {
+        resetFlowThreeButton.addEventListener('click', resetFlowThreeState);
+      }
+
+      if (!flow03Card) {
+        return;
+      }
+
+      function openFlowThree() {
+        window.location.href = 'flowThree.html';
+      }
+
+      flow03Card.addEventListener('click', openFlowThree);
+      flow03Card.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openFlowThree();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
