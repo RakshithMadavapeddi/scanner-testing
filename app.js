@@ -694,7 +694,7 @@
     });
 
     doneButton.addEventListener('click', function () {
-      window.location.href = 'dashboard.html';
+      window.location.href = 'summary.html?flow=2';
     });
 
     window.addEventListener('storage', function (event) {
@@ -1274,10 +1274,46 @@
       return;
     }
 
-    var currentState = await getOrCreateState();
+    var searchParams = new URLSearchParams(window.location.search || '');
+    var summaryFlow = String(searchParams.get('flow') || '').toLowerCase();
+    var isFlowTwoSummary = summaryFlow === '2' || summaryFlow === 'flow2' || summaryFlow === 'flow-two';
 
-    function renderSummary() {
-      var countedTickets = currentState.tickets
+    var flowThreeState = null;
+    var flowTwoState = null;
+
+    if (isFlowTwoSummary) {
+      flowTwoState = getOrCreateFlowTwoState();
+    } else {
+      flowThreeState = await getOrCreateState();
+    }
+
+    function renderEmptySummary(titleText, subtitleText) {
+      summaryList.innerHTML = [
+        '<div class="summary-row">',
+        '  <div class="game-info">',
+        '    <p class="game-title">' + escapeHTML(titleText) + '</p>',
+        '    <p class="bundle-id">' + escapeHTML(subtitleText) + '</p>',
+        '  </div>',
+        '  <div class="metrics">',
+        '    <div class="metric">',
+        '      <p class="metric-label">Unit</p>',
+        '      <p class="metric-value">000</p>',
+        '    </div>',
+        '    <div class="metric">',
+        '      <p class="metric-label">Qty</p>',
+        '      <p class="metric-value">000</p>',
+        '    </div>',
+        '    <div class="metric">',
+        '      <p class="metric-label">Total</p>',
+        '      <p class="metric-value">0000</p>',
+        '    </div>',
+        '  </div>',
+        '</div>'
+      ].join('');
+    }
+
+    function renderFlowThreeSummary() {
+      var countedTickets = flowThreeState.tickets
         .filter(isTicketCounted)
         .slice()
         .sort(function (ticketA, ticketB) {
@@ -1297,28 +1333,7 @@
       summaryTotalValue.textContent = '$ ' + formatSummaryAmount(totalAmount);
 
       if (!countedTickets.length) {
-        summaryList.innerHTML = [
-          '<div class="summary-row">',
-          '  <div class="game-info">',
-          '    <p class="game-title">No counted tickets</p>',
-          '    <p class="bundle-id">Go back and count bundles first.</p>',
-          '  </div>',
-          '  <div class="metrics">',
-          '    <div class="metric">',
-          '      <p class="metric-label">Unit</p>',
-          '      <p class="metric-value">000</p>',
-          '    </div>',
-          '    <div class="metric">',
-          '      <p class="metric-label">Qty</p>',
-          '      <p class="metric-value">000</p>',
-          '    </div>',
-          '    <div class="metric">',
-          '      <p class="metric-label">Total</p>',
-          '      <p class="metric-value">0000</p>',
-          '    </div>',
-          '  </div>',
-          '</div>'
-        ].join('');
+        renderEmptySummary('No counted tickets', 'Go back and count bundles first.');
         return;
       }
 
@@ -1351,6 +1366,70 @@
       }).join('');
     }
 
+    function renderFlowTwoSummary() {
+      var scannedItems = flowTwoState.items
+        .slice()
+        .sort(function (itemA, itemB) {
+          var gameDiff = toSafeInt(itemA.gameId, 0) - toSafeInt(itemB.gameId, 0);
+          if (gameDiff !== 0) {
+            return gameDiff;
+          }
+
+          return toSafeInt(itemA.bundleId, 0) - toSafeInt(itemB.bundleId, 0);
+        });
+
+      var totalAmount = scannedItems.reduce(function (total, item) {
+        var quantity = toSafeInt(item.quantity, 0);
+        var unitPrice = toSafeNumber(item.unitPrice, 0);
+        return total + (quantity * unitPrice);
+      }, 0);
+
+      summaryTotalValue.textContent = '$ ' + formatSummaryAmount(totalAmount);
+
+      if (!scannedItems.length) {
+        renderEmptySummary('No scanned tickets', 'Go back and scan bundles first.');
+        return;
+      }
+
+      summaryList.innerHTML = scannedItems.map(function (item) {
+        var quantity = toSafeInt(item.quantity, 0);
+        var unitPrice = toSafeNumber(item.unitPrice, 0);
+        var lineTotal = quantity * unitPrice;
+
+        return [
+          '<div class="summary-row">',
+          '  <div class="game-info">',
+          '    <p class="game-title">' + escapeHTML(item.gameTitle) + '</p>',
+          '    <p class="bundle-id">Bundle ' + escapeHTML(item.bundleId) + '</p>',
+          '  </div>',
+          '  <div class="metrics">',
+          '    <div class="metric">',
+          '      <p class="metric-label">Unit</p>',
+          '      <p class="metric-value">' + DataApi.pad(unitPrice, 3) + '</p>',
+          '    </div>',
+          '    <div class="metric">',
+          '      <p class="metric-label">Qty</p>',
+          '      <p class="metric-value">' + DataApi.pad(quantity, 3) + '</p>',
+          '    </div>',
+          '    <div class="metric">',
+          '      <p class="metric-label">Total</p>',
+          '      <p class="metric-value">' + formatSummaryAmount(lineTotal) + '</p>',
+          '    </div>',
+          '  </div>',
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    function renderSummary() {
+      if (isFlowTwoSummary) {
+        renderFlowTwoSummary();
+        return;
+      }
+
+      renderFlowThreeSummary();
+    }
+
     if (summaryDoneButton) {
       bindPseudoButton(summaryDoneButton, function () {
         window.location.href = 'dashboard.html';
@@ -1358,13 +1437,26 @@
     }
 
     window.addEventListener('storage', function (event) {
+      if (isFlowTwoSummary) {
+        if (event.key !== FLOW_TWO_STORAGE_KEY) {
+          return;
+        }
+
+        var latestFlowTwo = readFlowTwoStateFromStorage();
+        if (latestFlowTwo) {
+          flowTwoState = latestFlowTwo;
+          renderSummary();
+        }
+        return;
+      }
+
       if (event.key !== STORAGE_KEY) {
         return;
       }
 
-      var latest = readStateFromStorage();
-      if (latest) {
-        currentState = latest;
+      var latestFlowThree = readStateFromStorage();
+      if (latestFlowThree) {
+        flowThreeState = latestFlowThree;
         renderSummary();
       }
     });
